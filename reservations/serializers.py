@@ -15,6 +15,7 @@ class ReservationSerializer(serializers.ModelSerializer):
     )
     hotel_name = serializers.CharField(default="Blue Lagoon Hotels and Resorts", read_only=True)
     total_amount = serializers.DecimalField(max_digits=12, decimal_places=2, read_only=True)
+    reference_number = serializers.CharField(read_only=True)
 
     class Meta:
         model = Reservation
@@ -40,13 +41,3 @@ class ReservationSerializer(serializers.ModelSerializer):
         if data['check_in_date'] >= data['check_out_date']:
             raise serializers.ValidationError("Check-out date must be after check-in date")
         return data
-
-    def create(self, validated_data):
-        # Calculate total amount
-        room_type = validated_data['room_type']
-        nights = (validated_data['check_out_date'] - validated_data['check_in_date']).days
-        base_price = room_type.price_per_night * nights * validated_data['number_of_rooms']
-        extra_bed_price = 10000 if validated_data.get('extra_bed', False) else 0
-        
-        validated_data['total_amount'] = base_price + extra_bed_price
-        return super().create(validated_data)
